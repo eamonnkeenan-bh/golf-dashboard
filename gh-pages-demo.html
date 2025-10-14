@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Golf Challenge Dashboard (GH Pages Demo)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body class="bg-slate-50">
+    <div id="root"></div>
+    <script type="text/babel">
+      // Minimal inline copy (no export) to mount component for GH Pages demo.
+      const BH_BRAND = { green: "#24765d", navy: "#0b1d30" };
+      const BH_LOGO_SRC = "https://bettinghero.com/wp-content/uploads/cropped-Primary-Wordmark_Light-BG-1.webp";
+      const ENTRY_FEE = 50;
+      const PAYOUTS = { 1: 5000, 2: 1000, 3: 250 };
+      const sampleData = [
+        { id: "1", name: "Alex Kim", course: "Pebble Beach", date: "2025-10-11", distance: 2.1, type: "closest" },
+        { id: "2", name: "Riley Chen", course: "Pebble Beach", date: "2025-10-11", distance: 5.4, type: "putt" },
+        { id: "3", name: "Jordan West", course: "St. Andrews", date: "2025-10-12", distance: 0.9, type: "closest" },
+        { id: "4", name: "Sam Patel", course: "Augusta National", date: "2025-10-10", distance: 37.0, type: "putt" },
+        { id: "5", name: "Jamie Lee", course: "St. Andrews", date: "2025-10-12", distance: 1.7, type: "closest" },
+        { id: "6", name: "Chris Diaz", course: "Pebble Beach", date: "2025-10-13", distance: 48.2, type: "putt" },
+        { id: "7", name: "Alex Kim", course: "Augusta National", date: "2025-10-09", distance: 3.0, type: "closest" },
+        { id: "8", name: "Riley Chen", course: "St. Andrews", date: "2025-10-12", distance: 22.6, type: "putt" },
+        { id: "9", name: "Morgan Silva", course: "Pebble Beach", date: "2025-10-14", distance: 0.6, type: "closest" },
+        { id: "10", name: "Taylor Brooks", course: "Augusta National", date: "2025-10-12", distance: 55.0, type: "putt" },
+        { id: "11", name: "Alex Kim", course: "Pebble Beach", date: "2025-10-11", distance: 310, type: "drive" },
+        { id: "12", name: "Jamie Lee", course: "St. Andrews", date: "2025-10-12", distance: 327, type: "drive" },
+        { id: "13", name: "Morgan Silva", course: "Pebble Beach", date: "2025-10-14", distance: 301, type: "drive" },
+        { id: "14", name: "Chris Diaz", course: "Pebble Beach", date: "2025-10-13", distance: 342, type: "drive" },
+      ];
+      function withinDateRange(dateStr, from, to) {
+        if (!from && !to) return true;
+        const d = new Date(dateStr);
+        if (from && d < new Date(from)) return false;
+        if (to) {
+          const t = new Date(to);
+          t.setDate(t.getDate() + 1);
+          if (d > t) return false;
+        }
+        return true;
+      }
+      function entriesFor(name) {
+        let h = 0;
+        for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+        return (h % 3) + 1;
+      }
+      function formatMoney(n) {
+        return n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+      }
+      function abbrevName(full) {
+        const parts = full.trim().split(/\\s+/);
+        if (parts.length === 1) return parts[0];
+        const first = (parts[0][0] || "").toUpperCase();
+        const last = parts.slice(1).join(" ");
+        return `${first}. ${last}`;
+      }
+      function Leaderboard({ title, subtitle, rows }) {
+        return (
+          <section>
+            <div className="flex flex-col gap-1 mb-2">
+              <h2 className="text-base font-semibold">{title}</h2>
+              <p className="text-[11px] text-slate-500">{subtitle}</p>
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-[11px] text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">#</th>
+                    <th>Name</th>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th className="text-right pr-3">Distance (ft)</th>
+                    <th className="text-right pr-3">Entries</th>
+                    <th className="text-right pr-3">Payout</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.length === 0 ? (
+                    <tr><td colSpan={7} className="px-3 py-3 text-slate-500">No entries found.</td></tr>
+                  ) : (
+                    rows.map((r, i) => {
+                      const entries = entriesFor(r.name);
+                      const payout = {1:5000,2:1000,3:250}[i + 1] || 0;
+                      const isLeader = i === 0;
+                      return (
+                        <tr key={r.id} className={isLeader ? "bg-emerald-50" : i % 2 ? "bg-slate-50/60" : "bg-white"}>
+                          <td className="px-3 py-2 font-medium">{i + 1}</td>
+                          <td>{abbrevName(r.name)}</td>
+                          <td>{r.course}</td>
+                          <td>{r.date}</td>
+                          <td className="text-right pr-3 font-semibold">{r.distance.toFixed(1)}</td>
+                          <td className="text-right pr-3">{entries}</td>
+                          <td className="text-right pr-3 font-medium">{payout ? formatMoney(payout) : "—"}</td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      }
+      function TotalsTable({ title, rows }) {
+        return (\n          <section>\n            <div className=\"flex flex-col gap-1 mb-2\">\n              <h2 className=\"text-base font-semibold\">{title}</h2>\n              <p className=\"text-[11px] text-slate-500\">Sums entries across filtered events (no payouts).</p>\n            </div>\n            <div className=\"overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm\">\n              <table className=\"w-full text-left text-xs\">\n                <thead className=\"bg-slate-50 text-[11px] text-slate-600\"><tr><th classNameName=\"px-3 py-2\">Rank</th><th>Golfer</th><th className=\"text-right pr-3\">Total Entries</th></tr></thead>\n                <tbody>\n                  {rows.length === 0 ? (\n                    <tr><td colSpan={3} className=\"px-3 py-3 text-slate-500\">No entries found.</td></tr>\n                  ) : (\n                    rows.map((r, i) => (\n                      <tr key={r.name} className={i % 2 ? \"bg-slate-50/60\" : \"bg-white\"}>\n                        <td className=\"px-3 py-2 font-medium\">{i + 1}</td>\n                        <td>{abbrevName(r.name)}</td>\n                        <td className=\"text-right pr-3 font-semibold\">{r.entries}</td>\n                      </tr>\n                    ))\n                  )}\n                </tbody>\n              </table>\n            </div>\n          </section>\n        );\n      }\n      function App(){\n        const [rows] = React.useState(sampleData);\n        const [golfer,setGolfer] = React.useState(\"\");\n        const [course,setCourse] = React.useState(\"\");\n        const [fromDate,setFromDate] = React.useState(\"\");\n        const [toDate,setToDate] = React.useState(\"\");\n        const [showFilters,setShowFilters] = React.useState(true);\n        const golferOptions = React.useMemo(()=>Array.from(new Set(rows.map(r=>r.name))).sort(),[rows]);\n        const courseOptions = React.useMemo(()=>Array.from(new Set(rows.map(r=>r.course))).sort(),[rows]);\n        const filtered = React.useMemo(()=>rows.filter(r=>{\n          const byGolfer = golfer ? r.name===golfer : true;\n          const byCourse = course ? r.course===course : true;\n          const byDate = withinDateRange(r.date,fromDate,toDate);\n          return byGolfer && byCourse && byDate;\n        }),[rows,golfer,course,fromDate,toDate]);\n        const closest = React.useMemo(()=>filtered.filter(r=>r.type===\"closest\").sort((a,b)=>a.distance-b.distance),[filtered]);\n        const putts = React.useMemo(()=>filtered.filter(r=>r.type===\"putt\").sort((a,b)=>b.distance-a.distance),[filtered]);\n        const drives = React.useMemo(()=>filtered.filter(r=>r.type===\"drive\").sort((a,b)=>b.distance-a.distance),[filtered]);\n        const totals = React.useMemo(()=>{\n          const map = new Map();\n          for(const r of filtered){\n            const inc = entriesFor(r.name);\n            map.set(r.name,(map.get(r.name)||0)+inc);\n          }\n          return Array.from(map.entries()).map(([name,entries])=>({name,entries})).sort((a,b)=>b.entries-a.entries);\n        },[filtered]);\n        const clearFilters = ()=>{setGolfer(\"\");setCourse(\"\");setFromDate(\"\");setToDate(\"\");};\n        return (\n          <div className=\"min-h-screen w-full bg-slate-50 text-slate-900\">\n            <header className=\"sticky top-0 z-30 border-b border-slate-200 bg-white/90\">\n              <div className=\"mx-auto max-w-5xl px-4 py-3 flex items-center gap-3\">\n                <img src={BH_LOGO_SRC} alt=\"Betting Hero\" className=\"h-12 w-auto object-contain\" />\n                <h1 className=\"text-xl font-semibold tracking-tight\">Golf Challenge Dashboard</h1>\n                <button onClick={()=>setShowFilters(s=>!s)} className=\"ml-auto h-9 rounded-lg px-3 text-xs font-medium text-white\" style={{backgroundColor:BH_BRAND.green}}>\n                  {showFilters?\"Hide Filters\":\"Show Filters\"}\n                </button>\n              </div>\n              {showFilters && (\n                <div className=\"mx-auto max-w-5xl px-4 pb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2\">\n                  <div className=\"flex flex-col\">\n                    <label className=\"text-[11px] font-medium text-slate-600 mb-1\">Golfer</label>\n                    <select className=\"h-10 rounded-xl border border-slate-300 px-3 text-xs focus:ring-2\" style={{outlineColor:BH_BRAND.green}} value={golfer} onChange={e=>setGolfer(e.target.value)}>\n                      <option value=\"\">All golfers</option>\n                      {golferOptions.map(g=>(<option key={g} value={g}>{abbrevName(g)}</option>))}\n                    </select>\n                  </div>\n                  <div className=\"flex flex-col\">\n                    <label className=\"text-[11px] font-medium text-slate-600 mb-1\">Course</label>\n                    <select className=\"h-10 rounded-xl border border-slate-300 px-3 text-xs focus:ring-2\" style={{outlineColor:BH_BRAND.green}} value={course} onChange={e=>setCourse(e.target.value)}>\n                      <option value=\"\">All courses</option>\n                      {courseOptions.map(c=>(<option key={c} value={c}>{c}</option>))}\n                    </select>\n                  </div>\n                  <div className=\"flex items-end gap-2\">\n                    <div className=\"flex-1\">\n                      <label className=\"text-[11px] font-medium text-slate-600 mb-1\">From</label>\n                      <input type=\"date\" className=\"h-10 w-full rounded-xl border border-slate-300 px-3 text-xs focus:ring-2\" style={{outlineColor:BH_BRAND.green}} value={fromDate} onChange={e=>setFromDate(e.target.value)} />\n                    </div>\n                    <div className=\"flex-1\">\n                      <label className=\"text-[11px] font-medium text-slate-600 mb-1\">To</label>\n                      <input type=\"date\" className=\"h-10 w-full rounded-xl border border-slate-300 px-3 text-xs focus:ring-2\" style={{outlineColor:BH_BRAND.green}} value={toDate} onChange={e=>setToDate(e.target.value)} />\n                    </div>\n                  </div>\n                  <div className=\"flex items-end\">\n                    <button onClick={clearFilters} className=\"w-full h-10 rounded-xl text-white text-xs font-medium\" style={{backgroundColor:BH_BRAND.green}}>Clear filters</button>\n                  </div>\n                </div>\n              )}\n            </header>\n            <main className=\"mx-auto max-w-5xl px-4 py-4 space-y-8\">\n              <Leaderboard title=\"Closest to the Hole\" subtitle={`Entry Fee: ${new Intl.NumberFormat(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}).format(50)} | Payouts: 1st $5,000, 2nd $1,000, 3rd $250`} rows={closest} />\n              <Leaderboard title=\"Longest Putt Challenge\" subtitle={`Entry Fee: $50 | Payouts: 1st $5,000, 2nd $1,000, 3rd $250`} rows={putts} />\n              <Leaderboard title=\"Longest Drive Challenge\" subtitle={`Entry Fee: $50 | Payouts: 1st $5,000, 2nd $1,000, 3rd $250`} rows={drives} />\n              <TotalsTable title=\"Entries by Golfer (All Events)\" rows={totals} />\n            </main>\n            <footer className=\"mx-auto max-w-5xl px-4 py-8 text-center text-xs text-slate-500\">\n              <img src={BH_LOGO_SRC} alt=\"Betting Hero\" className=\"h-6 w-auto mx-auto mb-2\" />\n              <p>© {new Date().getFullYear()} Betting Hero</p>\n            </footer>\n          </div>\n        );\n      }\n      const root = ReactDOM.createRoot(document.getElementById('root'));\n      root.render(<App/>);\n    </script>\n  </body>\n</html>\n
