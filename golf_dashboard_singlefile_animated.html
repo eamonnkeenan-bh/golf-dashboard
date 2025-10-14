@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golf Challenge Dashboard</title>
+  <link rel="icon" href="https://bettinghero.com/wp-content/uploads/cropped-Primary-Wordmark_Light-BG-1.webp" />
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React 18 UMD builds -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel Standalone to transpile JSX in-browser -->
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body class="bg-slate-50">
+  <div id="root"></div>
+
+  <!-- Dashboard with animated hide/show for the menu -->
+  <script type="text/babel" data-presets="env,react">
+    const BH_BRAND = { green: "#24765d", navy: "#0b1d30" };
+    const BH_LOGO_SRC = "https://bettinghero.com/wp-content/uploads/cropped-Secondary-Logo_Light-BG-1.webp";
+    const ENTRY_FEE = 50;
+    const PAYOUTS = { 1: 5000, 2: 1000, 3: 250 };
+
+    const sampleData = [
+      { id: "1", name: "A. Kim", course: "Pebble Beach", date: "2025-10-11", distance: 2.1, type: "closest" },
+      { id: "2", name: "R. Chen", course: "Pebble Beach", date: "2025-10-11", distance: 5.4, type: "putt" },
+      { id: "3", name: "J. West", course: "St. Andrews", date: "2025-10-12", distance: 0.9, type: "closest" },
+      { id: "4", name: "S. Patel", course: "Augusta National", date: "2025-10-10", distance: 37.0, type: "putt" },
+      { id: "5", name: "J. Lee", course: "St. Andrews", date: "2025-10-12", distance: 1.7, type: "closest" },
+      { id: "6", name: "C. Diaz", course: "Pebble Beach", date: "2025-10-13", distance: 48.2, type: "putt" },
+      { id: "7", name: "A. Kim", course: "Augusta National", date: "2025-10-09", distance: 3.0, type: "closest" },
+      { id: "8", name: "R. Chen", course: "St. Andrews", date: "2025-10-12", distance: 22.6, type: "putt" },
+      { id: "9", name: "M. Silva", course: "Pebble Beach", date: "2025-10-14", distance: 0.6, type: "closest" },
+      { id: "10", name: "T. Brooks", course: "Augusta National", date: "2025-10-12", distance: 55.0, type: "putt" },
+      { id: "11", name: "A. Kim", course: "Pebble Beach", date: "2025-10-11", distance: 310, type: "drive" },
+      { id: "12", name: "J. Lee", course: "St. Andrews", date: "2025-10-12", distance: 327, type: "drive" },
+      { id: "13", name: "M. Silva", course: "Pebble Beach", date: "2025-10-14", distance: 301, type: "drive" },
+      { id: "14", name: "C. Diaz", course: "Pebble Beach", date: "2025-10-13", distance: 342, type: "drive" },
+    ];
+
+    function withinDateRange(dateStr, from, to) {
+      if (!from && !to) return true;
+      const d = new Date(dateStr);
+      if (from && d < new Date(from)) return false;
+      if (to) {
+        const t = new Date(to);
+        t.setDate(t.getDate() + 1);
+        if (d > t) return false;
+      }
+      return true;
+    }
+
+    function entriesFor(name) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+      return (h % 3) + 1;
+    }
+
+    function formatMoney(n) {
+      return n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+    }
+
+    function Leaderboard({ title, subtitle, rows }) {
+      return (
+        <section>
+          <div className="flex flex-col gap-1 mb-2">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <p className="text-xs text-slate-500">{subtitle}</p>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-600">
+                <tr><th className="px-3 py-2">#</th><th>Name</th><th>Course</th><th>Date</th><th className="text-right pr-3">Distance (ft)</th><th className="text-right pr-3">Entries</th><th className="text-right pr-3">Payout</th></tr>
+              </thead>
+              <tbody>
+                {rows.length === 0 ? (<tr><td colSpan={7} className="px-3 py-3 text-slate-500">No entries found.</td></tr>) : (
+                  rows.map((r, i) => {
+                    const entries = entriesFor(r.name);
+                    const payout = PAYOUTS[i + 1] || 0;
+                    const isLeader = i === 0;
+                    return (
+                      <tr key={r.id} className={isLeader ? "bg-emerald-50" : i % 2 ? "bg-slate-50/60" : "bg-white"}>
+                        <td className="px-3 py-2 font-medium">{i + 1}</td>
+                        <td>{r.name}</td>
+                        <td>{r.course}</td>
+                        <td>{r.date}</td>
+                        <td className="text-right pr-3 font-semibold">{r.distance.toFixed(1)}</td>
+                        <td className="text-right pr-3">{entries}</td>
+                        <td className="text-right pr-3 font-medium">{payout ? formatMoney(payout) : "—"}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      );
+    }
+
+    function TotalsTable({ title, rows }) {
+      return (
+        <section>
+          <div className="flex flex-col gap-1 mb-2">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <p className="text-xs text-slate-500">Sums entries across filtered events (no payouts).</p>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-600"><tr><th className="px-3 py-2">Rank</th><th>Golfer</th><th className="text-right pr-3">Total Entries</th></tr></thead>
+              <tbody>
+                {rows.length === 0 ? (<tr><td colSpan={3} className="px-3 py-3 text-slate-500">No entries found.</td></tr>) : (
+                  rows.map((r, i) => (
+                    <tr key={r.name} className={i % 2 ? "bg-slate-50/60" : "bg-white"}>
+                      <td className="px-3 py-2 font-medium">{i + 1}</td>
+                      <td>{r.name}</td>
+                      <td className="text-right pr-3 font-semibold">{r.entries}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      );
+    }
+
+    function GolfChallengeDashboard() {
+      const [rows] = React.useState(sampleData);
+      const [golfer, setGolfer] = React.useState("");
+      const [course, setCourse] = React.useState("");
+      const [fromDate, setFromDate] = React.useState("");
+      const [toDate, setToDate] = React.useState("");
+
+      // Menu open state for toggle button (controls label only)
+      const [menuOpen, setMenuOpen] = React.useState(true);
+      // Inline style used to animate height/opacity
+      const [menuStyle, setMenuStyle] = React.useState({ height: "auto", opacity: 1 });
+      const contentRef = React.useRef(null);
+
+      const golferOptions = React.useMemo(() => Array.from(new Set(rows.map(r => r.name))).sort(), [rows]);
+      const courseOptions = React.useMemo(() => Array.from(new Set(rows.map(r => r.course))).sort(), [rows]);
+
+      const filtered = React.useMemo(() => {
+        return rows.filter(r => {
+          const byGolfer = golfer ? r.name === golfer : true;
+          const byCourse = course ? r.course === course : true;
+          const byDate = withinDateRange(r.date, fromDate, toDate);
+          return byGolfer && byCourse && byDate;
+        });
+      }, [rows, golfer, course, fromDate, toDate]);
+
+      const closest = React.useMemo(() => filtered.filter(r => r.type === "closest").sort((a, b) => a.distance - b.distance), [filtered]);
+      const putts = React.useMemo(() => filtered.filter(r => r.type === "putt").sort((a, b) => b.distance - a.distance), [filtered]);
+      const drives = React.useMemo(() => filtered.filter(r => r.type === "drive").sort((a, b) => b.distance - a.distance), [filtered]);
+
+      const totals = React.useMemo(() => {
+        const map = new Map();
+        for (const r of filtered) {
+          const inc = entriesFor(r.name);
+          map.set(r.name, (map.get(r.name) || 0) + inc);
+        }
+        return Array.from(map.entries())
+          .map(([name, entries]) => ({ name, entries }))
+          .sort((a, b) => b.entries - a.entries);
+      }, [filtered]);
+
+      const clearFilters = () => {
+        setGolfer(""); setCourse(""); setFromDate(""); setToDate("");
+      };
+
+      const toggleMenu = () => {
+        const el = contentRef.current;
+        if (!el) return;
+
+        if (menuOpen) {
+          // Closing: set current height, then animate to 0
+          const h = el.scrollHeight;
+          setMenuStyle({ height: h + "px", opacity: 1 });
+          requestAnimationFrame(() => {
+            setMenuStyle({ height: "0px", opacity: 0 });
+          });
+          setMenuOpen(false);
+        } else {
+          // Opening: from 0 to content height, then set to auto at end
+          const h = el.scrollHeight;
+          setMenuStyle({ height: "0px", opacity: 0 });
+          requestAnimationFrame(() => {
+            setMenuStyle({ height: h + "px", opacity: 1 });
+          });
+          setMenuOpen(true);
+        }
+      };
+
+      const onTransitionEnd = (e) => {
+        if (e.propertyName !== "height") return;
+        // After opening, lock height to auto for responsive content
+        if (menuOpen) setMenuStyle({ height: "auto", opacity: 1 });
+      };
+
+      return (
+        <div className="min-h-screen w-full bg-slate-50 text-slate-900">
+          {/* Header is now fully opaque (no transparency) */}
+          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+            <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <img src={BH_LOGO_SRC} className="h-12 w-auto object-contain" alt="Betting Hero logo"/>
+                <h1 className="text-xl font-semibold tracking-tight">Golf Challenge Dashboard</h1>
+              </div>
+              <button
+                onClick={toggleMenu}
+                className="px-3 py-2 rounded-xl text-sm font-medium text-white"
+                style={{ backgroundColor: BH_BRAND.navy }}
+              >
+                {menuOpen ? "Hide Menu" : "Show Menu"}
+              </button>
+            </div>
+
+            {/* Collapsible menu with slide/opacity animation */}
+            <div className="mx-auto max-w-5xl px-4">
+              <div
+                className="overflow-hidden transition-[height,opacity] duration-300 ease-in-out"
+                style={menuStyle}
+                onTransitionEnd={onTransitionEnd}
+              >
+                <div ref={contentRef} className="pb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 mb-1">Golfer</label>
+                    <select className="h-10 rounded-xl border border-slate-300 px-3 text-sm focus:ring-2" style={{ outlineColor: BH_BRAND.green }} value={golfer} onChange={e => setGolfer(e.target.value)}>
+                      <option value="">All golfers</option>
+                      {golferOptions.map(g => <option key={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-slate-600 mb-1">Course</label>
+                    <select className="h-10 rounded-xl border border-slate-300 px-3 text-sm focus:ring-2" style={{ outlineColor: BH_BRAND.green }} value={course} onChange={e => setCourse(e.target.value)}>
+                      <option value="">All courses</option>
+                      {courseOptions.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <label className="text-xs font-medium text-slate-600 mb-1">From</label>
+                      <input type="date" className="h-10 w-full rounded-xl border border-slate-300 px-3 text-sm focus:ring-2" style={{ outlineColor: BH_BRAND.green }} value={fromDate} onChange={e => setFromDate(e.target.value)} />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs font-medium text-slate-600 mb-1">To</label>
+                      <input type="date" className="h-10 w-full rounded-xl border border-slate-300 px-3 text-sm focus:ring-2" style={{ outlineColor: BH_BRAND.green }} value={toDate} onChange={e => setToDate(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <button onClick={clearFilters} className="w-full h-10 rounded-xl text-white text-sm font-medium" style={{ backgroundColor: BH_BRAND.green }}>Clear filters</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="mx-auto max-w-5xl px-4 py-4 space-y-8">
+            <Leaderboard title="Closest to the Hole" subtitle={\`Entry Fee: \${formatMoney(ENTRY_FEE)} | Payouts: 1st \${formatMoney(PAYOUTS[1])}, 2nd \${formatMoney(PAYOUTS[2])}, 3rd \${formatMoney(PAYOUTS[3])}\`} rows={closest} />
+            <Leaderboard title="Longest Putt Challenge" subtitle={\`Entry Fee: \${formatMoney(ENTRY_FEE)} | Payouts: 1st \${formatMoney(PAYOUTS[1])}, 2nd \${formatMoney(PAYOUTS[2])}, 3rd \${formatMoney(PAYOUTS[3])}\`} rows={putts} />
+            <Leaderboard title="Longest Drive Challenge" subtitle={\`Entry Fee: \${formatMoney(ENTRY_FEE)} | Payouts: 1st \${formatMoney(PAYOUTS[1])}, 2nd \${formatMoney(PAYOUTS[2])}, 3rd \${formatMoney(PAYOUTS[3])}\`} rows={drives} />
+            <TotalsTable title="Entries by Golfer (All Events)" rows={totals} />
+          </main>
+
+          <footer className="mx-auto max-w-5xl px-4 py-8 text-center text-xs text-slate-500">
+            <img src={BH_LOGO_SRC} className="h-6 w-auto mx-auto mb-2" alt="Betting Hero logo small"/>
+            <p>© {new Date().getFullYear()} Betting Hero</p>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<GolfChallengeDashboard />);
+  </script>
+</body>
+</html>
